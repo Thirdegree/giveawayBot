@@ -1,9 +1,11 @@
 import praw, sqlite3
 from time import sleep
+from random import choice
 
 giveawayString = "*MESSAGE TO BE SENT TO GIVEAWAY WINNERS HERE. PLACE '%s's WHEREVER YOU WANT THE GIVEAWAY REDEMTION KEY AND KEY VALUE TO APPEAR (WILL APPEAR IN THAT ORDER)"
 conn = sqlite3.connect("giveaway.db")
 c = conn.cursor()
+sillies = ["*Silly responses need to be added here*", "Seperated by commas", "And surrounded by quotes"]
 r = praw.Reddit("Giveaway bot by /u/Thirdegree")
 
 #tested, works
@@ -27,6 +29,7 @@ while True:
     except praw.errors.InvalidUserPass:
         print "Invalid Username/password, please try again."
 
+################################
 def inbox():
     unread = r.get_unread()
     for i in unread:
@@ -70,6 +73,23 @@ def dispowered_giveaway(author):
         send_message(author, "Giveaway code", "Your redemtion code is %s", response[1])
     else:
         send_message(author, "Giveaway code", "404'd! No code found. If you feel this message is in error, please contact /u/project_twenty5oh1")
+################################
+
+################################
+def comments():
+    comment_stream = praw.helpers.comment_stream(r, 'all')
+    i = 0
+    for j in comment_stream:
+        if i>300:
+            break
+        if j.author == CONTROL:
+            silly(j)
+        i = i+1
+
+def silly(comment):
+    comment.reply(choice(sillies))
+################################
+
 
 def main():
     while True:
