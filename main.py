@@ -64,7 +64,7 @@ def add_database(userDict):
 #tested, works. Expects each line to be formatted "username: code value"
 def parse(body):
     temp = {}
-    for line in body.split('\n'):
+    for line in body.split('\n\n'):
         #['username', 'code value']
         parse1 = line.split(":")
         #{'username': ['code', 'value']}
