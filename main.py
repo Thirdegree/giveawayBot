@@ -7,6 +7,7 @@ conn = sqlite3.connect("giveaway.db")
 c = conn.cursor()
 sillies = ["*Silly responses need to be added here*", "Seperated by commas", "And surrounded by quotes"]
 r = praw.Reddit("Giveaway bot by /u/Thirdegree")
+sillyTrigger = "Mr. Master"
 
 #tested, works
 def create_database():
@@ -49,7 +50,6 @@ def giveaway(body):
     for k, v in to.items():
                                                         #code   value($)
         send_message(k, "Giveaway prize", giveawayString%(v[0], v[1]))
-        sleep(2)
 
 def add_database(userDict):
     c.execute("DELETE FROM giveaway")
@@ -78,13 +78,13 @@ def dispowered_giveaway(author):
 ################################
 def comments():
     comment_stream = praw.helpers.comment_stream(r, 'all')
-    i = 0
+    i=0
     for j in comment_stream:
-        if i>300:
-            break
-        if j.author == CONTROL:
+        if j.author.name.lower() == CONTROL.lower() and j.body == sillyTrigger:
             silly(j)
-        i = i+1
+        if i>1000:
+            break
+        i=i+1
 
 def silly(comment):
     comment.reply(choice(sillies))
