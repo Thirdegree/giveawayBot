@@ -1,6 +1,6 @@
 #Don't change anything in a box of #s
 #############################
-import praw, sqlite3        #
+import praw, sqlite3, obot     
 from time import sleep, time#
 from random import choice   #
 #############################
@@ -9,13 +9,15 @@ from random import choice   #
 ##################################################
 conn = sqlite3.connect("giveaway.db")            #
 c = conn.cursor()                                #
-r = praw.Reddit("Giveaway bot by /u/Thirdegree") #
+ #
+r = obot.login()
 alreadyReplied = []                              #
 ##################################################
 
 giveawayString = "*MESSAGE TO BE SENT TO GIVEAWAY WINNERS HERE. PLACE '%s's WHEREVER YOU WANT THE GIVEAWAY REDEMTION KEY AND KEY VALUE TO APPEAR (WILL APPEAR IN THAT ORDER)%s"
 sillies = ["*Silly responses need to be added here*", "Seperated by commas", "And surrounded by quotes"]
 sillyTrigger = "Mr. Master"
+
 
 
 
@@ -26,21 +28,16 @@ def create_database():                                         #
                 (username text, code text, value text)''')     #
     conn.commit()                                              #
                                                                #
-#works                                                         #
-def _login():                                                  # 
-    USERNAME = raw_input("Username?\n> ")                      #
-    r.login(USERNAME, "")                                      #
-    return USERNAME                                            #
+                                           #
                                                                #
 #works                                                         #
 while True:                                                    #
     try:                                                       #
-        USERNAME = _login()                                    #
-        CONTROL = raw_input("Control username\n> ")            #
-        print CONTROL
+        CONTROL = input("Control username\n> ")            #
+        print(CONTROL)
         break                                                  #
     except praw.errors.InvalidUserPass:                        #
-        print "Invalid Username/password, please try again."   #
+        print("Invalid Username/password, please try again.")   #
 ################################################################
 
 ################################
@@ -48,30 +45,36 @@ while True:                                                    #
 #################################################################################
 def inbox():                                                                    #
     unread = r.get_unread()                                                     #
-    for i in unread:                                                            #
+    for i in unread:      
         author = i.author.name                                                  #
-        if author==CONTROL and i.body.split("\n")[0].strip() == "+new giveaway":#
-            #strips away the "+new giveaway line for the parser"                #
-            giveaway("\n".join(i.body.split("\n")[1:]).strip()) #check          #
+        if author.lower()==CONTROL.lower() and i.body.split("\n")[0].strip() == "+new giveaway":#
+            #strips away the "+new giveaway line for the parser"       
+            giveaway("\n".join(i.body.split("\n")[1:]).strip()) #check    
         elif author not in alreadyReplied and not i.was_comment:                #
             dispowered_giveaway(author) #check                                  #
             alreadyReplied.append(author)                                       #
-        i.mark_as_read()                                                        #
+        i.mark_as_read() 
+
 #################################################################################
 #works, tested
 ###############################################################
 def giveaway(body):                                           #
-    #{'username':['code', 'value']}                           #
-    to = parse(body)                                          #
-    clear_database()                                          #
-    for i in to:                                              #
-        add_database(i)                                       #
-    users = [{k:v for k, v in x.items()} for x in parse(body)]#
+    #{'username':['code', 'value']}     
+                         #
+    to = parse(body)        
+    clear_database()                                      #
+    add_database(to)
+    users = []#
+    for k in to:
+        users.append({k:to[k]})
+    print(users)
     for i in users:                                           #                 
-        for k, v in i.items():                                # 
+        for j in i:                                # 
 ###############################################################
                                 #Message title                #code   value($)
-            r.send_message(k, "Giveaway prize", giveawayString%(v[0], v[1]))
+            print(i)
+            r.send_message(j, "Giveaway prize", giveawayString%(i[j][0], i[j][1]))
+
 
 #works, tested
 #############################################################################
@@ -79,20 +82,22 @@ def clear_database():                                                       #
     c.execute("DELETE FROM giveaway")                                       #
     conn.commit()                                                           #
                                                                             #
-def add_database(userDict):                                                 #
-    for k, v in userDict.items():                                           #
-        c.execute("INSERT INTO giveaway VALUES (?, ?, ?)", (k, '`'+v[0]+'`', v[1])) #
-        conn.commit()                                                       #
+def add_database(userDict):             
+                                        #
+    for k, v in userDict.items():                                                    #
+        c.execute("INSERT INTO giveaway VALUES (?, ?, ?)", (k, v[0], v[1])) #        
+        conn.commit()                                                      #
                                                                             #
 #tested, works. Expects each line to be formatted "username: code value"    #
-def parse(body):                                                            #
-    for line in body.split('\n\n'):                                         #
-        temp = {}                                                           #
+def parse(body):  
+    temp = {}                    
+    for line in body.split('\n\n'):
+                                                                 #
         #['username', 'code value']                                         #
         parse1 = line.split(":")                                            #
         #{'username': ['code', 'value']}                                    #
-        temp[parse1[0].strip()] = parse1[1].strip().split()                 #
-        yield temp                                                          #
+        temp[parse1[0].strip()] = parse1[1].strip().split()  
+    return temp                                                          #
 #############################################################################
 
 #tested, works.
