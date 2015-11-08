@@ -22,7 +22,7 @@ def onetime():
     code = input("Click \"Allow\" then input the string directly after \"&code=\" in the address bar:\n")
     accessInformation = r.get_access_information(code)
     r.refresh_access_information(accessInformation['refresh_token'])
-    print("In obot.py set app_refresh to " + accessInformation['refresh_token'] + "\n\n")
+    print("\n\n\nIn obot.py set app_refresh to " + accessInformation['refresh_token'] + "\n\n\n")
 
 if __name__ == '__main__':
     onetime()

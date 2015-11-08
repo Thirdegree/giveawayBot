@@ -14,7 +14,7 @@ r = obot.login()
 alreadyReplied = []                              #
 ##################################################
 
-giveawayString = "*MESSAGE TO BE SENT TO GIVEAWAY WINNERS HERE. PLACE '%s's WHEREVER YOU WANT THE GIVEAWAY REDEMTION KEY AND KEY VALUE TO APPEAR (WILL APPEAR IN THAT ORDER)%s"
+giveawayString = "Congrats, you won the giveaway! Your code is %s for %s off your order at [Bigglesworth Labs](http://bigglesworthlabs.com)."
 sillies = ["*Silly responses need to be added here*", "Seperated by commas", "And surrounded by quotes"]
 sillyTrigger = "Mr. Master"
 
@@ -61,12 +61,14 @@ def inbox():                                                                    
 def giveaway(body):                                           #
     #{'username':['code', 'value']}     
                          #
-    to = parse(body)        
+    to = parse(body)    #looks like [{username: [code, value]}]  
     clear_database()                                      #
     add_database(to)
     users = []#
-    for k in to:
-        users.append({k:to[k]})
+    to = parse(body)    #because it's a generator
+    for i in to:
+        users.append([{k:v} for k,v in i.items()][0]) #this is so dumb, I can't believe it works.
+        print(users)
     print(users)
     for i in users:                                           #                 
         for j in i:                                # 
@@ -82,12 +84,13 @@ def clear_database():                                                       #
     c.execute("DELETE FROM giveaway")                                       #
     conn.commit()                                                           #
                                                                             #
-def add_database(userDict):             
+def add_database(userDictGen):             
                                         #
-    for k, v in userDict.items():                                                    #
-        c.execute("INSERT INTO giveaway VALUES (?, ?, ?)", (k, v[0], v[1])) #        
-        conn.commit()                                                      #
-                                                                            #
+    for userDict in userDictGen:                                    
+        for k, v in userDict.items():                                                    #
+            c.execute("INSERT INTO giveaway VALUES (?, ?, ?)", (k, v[0], v[1])) #        
+            conn.commit()                                                      #
+                                                                                #
 #tested, works. Expects each line to be formatted "username: code value"    #
 def parse(body):  
     temp = {}                    
@@ -96,8 +99,8 @@ def parse(body):
         #['username', 'code value']                                         #
         parse1 = line.split(":")                                            #
         #{'username': ['code', 'value']}                                    #
-        temp[parse1[0].strip()] = parse1[1].strip().split()  
-    return temp                                                          #
+        temp[parse1[0].strip()] = parse1[1].strip().split()
+        yield temp                                                          #
 #############################################################################
 
 #tested, works.
